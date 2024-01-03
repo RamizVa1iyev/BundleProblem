@@ -11,9 +11,9 @@ public class Bundle
 
     public int? StockAmount { get; private set; }
 
-    public int ParentBundleId { get; private set; }
+    public int? ParentBundleId { get; private set; }
 
     public virtual List<Bundle>? ChildBundles { get; private set; }
 
-    public virtual Bundle ParentBundle { get; private set; }
+    public virtual Bundle? ParentBundle { get; private set; }
 }
