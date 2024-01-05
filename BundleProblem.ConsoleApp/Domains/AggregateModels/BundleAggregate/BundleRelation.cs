@@ -14,6 +14,12 @@ public class BundleRelation
         RequiredQuantity = requiredQuantity;
     }
 
+    public BundleRelation(int id, int parentBundleId, int childBundleId, int requiredQuantity, Bundle parentBundle, Bundle childBundle) : this(id, parentBundleId, childBundleId, requiredQuantity)
+    {
+        ParentBundle = parentBundle;
+        ChildBundle = childBundle;
+    }
+
     public int Id { get; private set; }
 
     public int ParentBundleId { get; private set; }

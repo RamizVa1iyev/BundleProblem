@@ -44,17 +44,21 @@ internal class Program
 
                 int[] values = Array.ConvertAll(input.Split(), Int32.Parse);
 
-                var bundle = bundles.FirstOrDefault(b => b.Id == values[0]);
-                BundleRelation bundleRelation = new BundleRelation(indexer, values[0], values[1], values[2]);
-                bundle?.AddChildBundleRelation(bundleRelation);
+                var parentBundle = bundles.FirstOrDefault(b => b.Id == values[0]);
+                var childbundle = bundles.FirstOrDefault(b => b.Id == values[1]);
+
+                BundleRelation bundleRelation = new BundleRelation(indexer, values[0], values[1], values[2], parentBundle, childbundle);//Include if use EF
+                parentBundle?.AddChildBundleRelation(bundleRelation);
                 indexer++;
             }
 
             Console.WriteLine();
-            Console.WriteLine("Insert the parent (P0) bundle ID that should be calculated the finished count.");
+            Console.WriteLine("Insert the base bundle ID (P0) that should be calculated the finished count.");//Use the select box if written with a web frontend
 
-            int parentBundleId = Int32.Parse(Console.ReadLine());
-            int maxFinishedBaseBundleCount = BundleHelper.CalculateFinishedCount(bundles, parentBundleId);
+            int baseBundleId = Int32.Parse(Console.ReadLine());
+            var baseBundle = bundles.FirstOrDefault(b => b.Id == baseBundleId);
+
+            int maxFinishedBaseBundleCount = BundleHelper.CalculateFinishedCount(bundles, baseBundle);
 
             Console.WriteLine("\nThe result is: {0}", maxFinishedBaseBundleCount);
         }
