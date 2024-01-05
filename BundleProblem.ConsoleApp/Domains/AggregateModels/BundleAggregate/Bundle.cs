@@ -1,6 +1,6 @@
 ﻿namespace BundleProblem.ConsoleApp.Domains.AggregateModels.BundleAggregate;
 
-public class Bundle : IAggregateRoot
+public class Bundle
 {
     public Bundle(int id, string name)
     {
