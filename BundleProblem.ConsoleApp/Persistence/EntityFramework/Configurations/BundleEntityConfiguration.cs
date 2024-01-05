@@ -1,4 +1,4 @@
-﻿using BundleProblem.ConsoleApp.Domains;
+﻿using BundleProblem.ConsoleApp.Domains.AggregateModels.BundleAggregate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -8,12 +8,10 @@ public class BundleEntityConfiguration : IEntityTypeConfiguration<Bundle>
 {
     public void Configure(EntityTypeBuilder<Bundle> builder)
     {
-        builder.HasKey(x => x.Id);
+        builder.HasKey(b => b.Id);
 
-        builder.Property(x=>x.Name).IsRequired().HasMaxLength(255);
-        builder.Property(x=>x.StockAmount).IsRequired(false);
-        builder.Property(x => x.RequiredCountForParent).IsRequired(false);
+        builder.Property(b => b.Name).IsRequired().HasMaxLength(255);
 
-        builder.HasOne(x => x.ParentBundle).WithMany(x => x.ChildBundles).HasForeignKey(x => x.ParentBundleId).HasPrincipalKey(x => x.Id);
+        builder.HasMany(b=>b.ChildBundleRelations).WithOne(r=>r.ParentBundle).HasForeignKey(r=>r.ParentBundleId).HasPrincipalKey(b=>b.Id);
     }
 }

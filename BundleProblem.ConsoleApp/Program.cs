@@ -1,118 +1,66 @@
-﻿internal class Program
+﻿using BundleProblem.ConsoleApp.Application.Helpers;
+using BundleProblem.ConsoleApp.Domains.AggregateModels.BundleAggregate;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
-        Console.Write("Insert base bundle name P(0): ");
-
-        string baseBundleName = Console.ReadLine();
-
-        BundleDto baseBundle = new(baseBundleName);
-
-        List<BundleDto> bundles = new List<BundleDto>();
-
-        var parentBundle = baseBundle;
-        do
+        try
         {
-            Console.Write("Insert count of child bundles of {0}: ", parentBundle.Name);
-            int childBundlesCount = int.Parse(Console.ReadLine());
-            for (int i = 0; i < childBundlesCount; i++)
+            Console.Write("Insert the count of bundles:");
+
+            int countOfBundles = Int32.Parse(Console.ReadLine());
+
+            Console.WriteLine("Insert the names of bundles and stock amount(if not exist, insert zero)");
+
+            List<Bundle> bundles = new List<Bundle>();//Select from DB if exist
+
+            for (int i = 0; i < countOfBundles; i++)
             {
-                Console.Write("Insert: count of child bundle for creating parent bundle, name of bundle and if exist stock number of bundle (2 Pedal 60) or (2 Wheel): ");
-                var inputs = Console.ReadLine().Split();
-                if (inputs.Length == 3)
-                {
-                    parentBundle.AddChildBundle(new BundleDto(inputs[1], int.Parse(inputs[0]), int.Parse(inputs[2])));
-                }
-                else if (inputs.Length == 2)
-                {
-                    parentBundle.AddChildBundle(new BundleDto(inputs[1], int.Parse(inputs[0])));
-                }
+                string[] inputs = Console.ReadLine().Split();
+                Bundle newBundle = new(i + 1, inputs[0], Int32.Parse(inputs[1]));
+
+                bundles.Add(newBundle);
             }
 
-            Console.Write("If there is child bundles of inserted bundles please insert parent bundle name (Wheel) else insert -1 : ");
+            Console.WriteLine();
+            Console.WriteLine("Inserted Bundles: ");
+            foreach (var bundle in bundles)
+            {
+                Console.WriteLine("Id: {0}, Name: {1}, Stock: {2}", bundle.Id, bundle.Name, bundle.StockAmount);
+            }
 
-            string bundleName = Console.ReadLine();
+            Console.WriteLine();
 
-            parentBundle = Search(baseBundle, bundleName);
+            Console.WriteLine("Please insert the parentBundleId, childBundleId and the required quantity for creating parent bundle. (Enter -1 for continue)");//Use the select box if written with a web frontend
 
-        } while (parentBundle != null);
+            int indexer = 1;
+            while (true)
+            {
+                string input = Console.ReadLine();
 
+                if (input == "-1")
+                    break;
 
+                int[] values = Array.ConvertAll(input.Split(), Int32.Parse);
 
-        int maxFinishedBaseBundleCount = CalculateFinishedCount(baseBundle);
+                var bundle = bundles.FirstOrDefault(b => b.Id == values[0]);
+                BundleRelation bundleRelation = new BundleRelation(indexer, values[0], values[1], values[2]);
+                bundle?.AddChildBundleRelation(bundleRelation);
+                indexer++;
+            }
 
-        Console.WriteLine("\nThe result is: {0}", maxFinishedBaseBundleCount);
+            Console.WriteLine();
+            Console.WriteLine("Insert the parent (P0) bundle ID that should be calculated the finished count.");
 
-    }
-    public static int CalculateFinishedCount(BundleDto baseBundle)
-    {
-        int minValue = -1;
+            int parentBundleId = Int32.Parse(Console.ReadLine());
+            int maxFinishedBaseBundleCount = BundleHelper.CalculateFinishedCount(bundles, parentBundleId);
 
-        foreach (BundleDto childBundle in baseBundle.ChildBundles)
-        {
-            int maxFinishedChildBundleCount = CalculateFinishedCount(childBundle);
-            if (minValue > maxFinishedChildBundleCount || minValue == -1)
-                minValue = maxFinishedChildBundleCount;
+            Console.WriteLine("\nThe result is: {0}", maxFinishedBaseBundleCount);
         }
-
-        int totalStockValue = (minValue == -1 ? 0 : minValue) + (baseBundle.StockAmount ?? 0);
-
-        return totalStockValue / (baseBundle.RequiredCountForParent ?? 1);
-    }
-
-    public static BundleDto? Search(BundleDto baseBundle, string name)
-    {
-        if (name == "-1")
-            return null;
-
-        if (baseBundle.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+        catch (Exception ex)
         {
-            return baseBundle;
+            Console.WriteLine("Exception during process: Message = {0}", ex.Message);
         }
-
-        foreach (var childBundle in baseBundle.ChildBundles)
-        {
-            var foundBundle = Search(childBundle, name);
-            if (foundBundle != null)
-                return foundBundle;
-        }
-
-        return null;
-    }
-}
-
-public class BundleDto
-{
-    public BundleDto()
-    {
-        ChildBundles = new List<BundleDto>();
-    }
-    public BundleDto(string name) : this()
-    {
-        Name = name;
-    }
-
-    public BundleDto(string name, int requiredCountForParent) : this(name)
-    {
-        RequiredCountForParent = requiredCountForParent;
-    }
-
-
-    public BundleDto(string name, int requiredCountForParent, int stockAmount) : this(name, requiredCountForParent)
-    {
-        StockAmount = stockAmount;
-    }
-
-    public string Name { get; private set; }
-
-    public int? RequiredCountForParent { get; private set; }
-
-    public int? StockAmount { get; private set; }
-
-    public List<BundleDto>? ChildBundles { get; private set; }
-
-    public void AddChildBundle(BundleDto child)
-    {
-        ChildBundles.Add(child);
     }
 }
